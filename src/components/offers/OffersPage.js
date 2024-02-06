@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -11,17 +11,109 @@ import {
   Center,
 } from '@chakra-ui/react';
 
-
-
 import OfferModal from './OfferModal';
 
 const OffersPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
+  const [offers, setOffers] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [lastPage, setLastPage] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState(0);
+  const [flatDetails, setFlatDetails] = useState(null);
+
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const response = await fetch(
+          `https://pwflatlyreact.azurewebsites.net/admin/flats?page=${currentPage}&pageSize=4&name=${searchTerm}&sort=${sortOption}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+            },
+          }
+        );
+  
+        const data = await response.json();
+  
+        if (response.status === 200) {
+          setOffers(data.data || []);
+          setLastPage(data.last);
+        } else {
+          console.error('Error fetching offers:', data.errorMessage);
+        }
+      } catch (error) {
+        console.error('Error during fetch:', error.message);
+      }
+    };
+    fetchOffers();
+  }, [currentPage, searchTerm, sortOption]);
+
+
+  const fetchOffers = async () => {
+    try {
+      const response = await fetch(
+        `https://pwflatlyreact.azurewebsites.net/admin/flats?page=${currentPage}&pageSize=4&name=${searchTerm}&sort=${sortOption}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setOffers(data.data || []);
+        setLastPage(data.last);
+      } else {
+        console.error('Error fetching offers:', data.errorMessage);
+      }
+    } catch (error) {
+      console.error('Error during fetch:', error.message);
+    }
+  };
+
+
+  const fetchFlatDetails = async (flatId) => {
+    const apiUrl = `https://pwflatlyreact.azurewebsites.net/flats/${flatId}`;
+
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+        },
+      });
+  
+      const data = await response.json();
+  
+      if (response.status === 200) {
+        console.log("dzialaaaaaaa");
+        setFlatDetails(data);
+      } else {
+        console.error('Error fetching flat details');
+      }
+      
+    } catch (error) {
+      console.error('Error during fetchFlatDetails:', error.message);
+      return { status: 500, data: null };
+    }
+  };
+
 
   const handleViewClick = (offer) => {
     setSelectedOffer(offer);
     setIsModalOpen(true);
+
+    fetchFlatDetails(offer.id);
+
   };
 
   const handleButtonAddClick = () => {
@@ -29,114 +121,48 @@ const OffersPage = () => {
     setIsModalOpen(true);
   };
 
-  const offers = [
-    {
-      id: 1,
-      name: 'Luxurious apartment',
-      price: 3200,
-      image: 'https://media.istockphoto.com/id/1289883686/photo/spacious-apartment-with-window-wall.jpg?s=612x612&w=0&k=20&c=u1avj_PrIxK_7TFf8rP6m0j3g7PyUyd-rgCzpF8SLao=',
-      description: 'A comfortable and stylish apartment for your stay. This spacious and well-furnished apartment provides a luxurious experience with breathtaking views from every window. Perfect for those seeking tranquility and elegance during their travels.',
-      addressLine1: 'Lenina',
-      city: 'Moscow',
-      province: 'Moscow',
-      postalCode: '12-234',
-      country: 'Russia',
-      area: '2000',
-      allowChildren: false,
-      allowPets: false,
-      typeOfPlace: "apartment",
-      numberOfRooms: 6,
-      numberOfBathrooms: 4,
-      numberOfBeds: 3,
-      isThereTV: true,
-      isThereWIFI: true,
-      isThereKitchen: false,
-      isThereAC: true
-    },
-    {
-      id: 2,
-      name: 'Studio apartment',
-      price: 550,
-      image: 'https://media.istockphoto.com/id/863561484/photo/living-room-with-table.jpg?s=612x612&w=0&k=20&c=eO1hkbZnpjm7fgkO0F_Ea0oCh2WMoHPvJO4uluYH2oo=',
-      description: 'Experience luxury in this spacious and modern loft. The studio apartment is designed with contemporary aesthetics, providing a cozy and artistic atmosphere. Ideal for individuals who appreciate unique and trendy living spaces.',
-      addressLine1: 'Zielona',
-      city: 'Warsaw',
-      province: 'Warsaw',
-      postalCode: '03-194',
-      country: 'Poland',
-      area: '1000',
-      allowChildren: true,
-      allowPets: false,
-      typeOfPlace: "apartment",
-      numberOfRooms: 4,
-      numberOfBathrooms: 2,
-      numberOfBeds: 3,
-      isThereTV: true,
-      isThereWIFI: true,
-      isThereKitchen: true,
-      isThereAC: true
-    },
-    {
-      id: 3,
-      name: 'Nice cosy flat',
-      price: 750,
-      image: 'https://www.shutterstock.com/image-photo/interior-small-apartment-living-room-600nw-2154108011.jpg',
-      description: 'Very nice flat, I totally recommend it, just look at my reviews! This cozy flat offers a warm and inviting ambiance, making it a perfect home away from home. Whether you are traveling for business or leisure, this flat provides a comfortable retreat.',
-      addressLine1: 'Parkowa',
-      city: 'Krakow',
-      province: 'Lesser Poland',
-      postalCode: '30-001',
-      country: 'Poland',
-      area: '800',
-      allowChildren: true,
-      allowPets: true,
-      typeOfPlace: "flat",
-      numberOfRooms: 3,
-      numberOfBathrooms: 1,
-      numberOfBeds: 2,
-      isThereTV: true,
-      isThereWIFI: true,
-      isThereKitchen: true,
-      isThereAC: false
-    },
-    {
-      id: 4,
-      name: 'Awesome place to stay',
-      price: 900,
-      image: 'https://images.pexels.com/photos/16103928/pexels-photo-16103928/free-photo-of-apartment-interior-design.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      description: 'This is a quite big place, there is a huge TV and AC, so you will not die from heat like in other places around. Discover an awesome place to stay with modern amenities and a spacious interior. The apartment is equipped with the latest technology and offers a comfortable environment for a relaxing stay.',
-      addressLine1: 'Piotrkowska',
-      city: 'Lodz',
-      province: 'Lodz',
-      postalCode: '90-001',
-      country: 'Poland',
-      area: '1200',
-      allowChildren: true,
-      allowPets: true,
-      typeOfPlace: "apartment",
-      numberOfRooms: 5,
-      numberOfBathrooms: 3,
-      numberOfBeds: 4,
-      isThereTV: true,
-      isThereWIFI: true,
-      isThereKitchen: true,
-      isThereAC: true
+  const handleNextPage = () => {
+    if (!lastPage) {
+      setCurrentPage(currentPage + 1);
     }
-  ];
-  
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+  };
+
+  const defaultThumbnail = 'https://i.pinimg.com/originals/db/96/eb/db96eb8fb839502b5654e10cbcd6f626.jpg';
 
   return (
     <Center>
       <VStack spacing={4} align="stretch" w="50%">
 
         <HStack spacing={4} w="100%">
-          <Input placeholder="Search..." flex="1" />
-          <Select placeholder="Sort by" flex="1">
-            <option value="priceDesc">Price: Descending</option>
-            <option value="priceAsc">Price: Ascending</option>
-            <option value="timeNewest">Time: Newest</option>
+          <Input
+              placeholder="Search..."
+              flex="1"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Select
+            placeholder="Sort by"
+            flex="1"
+            value={sortOption}
+            onChange={handleSortChange}
+          >
+            <option value={0}>Price: Descending</option>
+            <option value={1}>Price: Ascending</option>
+            <option value={2}>Time: Newest</option>
           </Select>
-          <Button colorScheme="teal">Search offers</Button>
+          <Button colorScheme="teal" onClick={fetchOffers}>
+            Search offers
+          </Button>
         </HStack>
         
         <Button
@@ -151,25 +177,30 @@ const OffersPage = () => {
 
         <Grid templateColumns="1fr" gap={4} w="100%">
           {offers.map((offer) => (
-
             <Box key={offer.id} p={4} borderWidth="1px" borderRadius="md" position="relative" bg="gray.100">
-                <Image src={offer.image} alt={offer.name} w="320px" h="200px" objectFit="cover" />
-                <Box position="absolute" top="5px" left="500px" p={2} bg="gray.100" color="black">
-                  <strong>{offer.name}</strong>
-                </Box>
-                <Box position="absolute" top="44%" right="150px" p={2} bg="gray.100" color="black">
-                  Price: ${offer.price}
-                </Box>
-                <Box position="absolute" top="50%" left="650px" transform="translate(-50%, -50%)" p={2} bg="gray.300" color="black" maxW="550px" rounded="md">
-                  {offer.description}
-                </Box>
-                <Button colorScheme="teal" position="absolute" bottom="50%" right="20px" transform="translateY(50%)" onClick={() => handleViewClick(offer)}>
-                  View
-                </Button>
-            </Box>
+              <Image src={offer.thumbnail || defaultThumbnail} alt={offer.title} w="320px" h="200px" objectFit="cover" />
+              <Box position="absolute" top="5px" left="500px" p={2} bg="gray.100" color="black">
+                <strong>{offer.title}</strong>
+              </Box>
+              <Box position="absolute" top="44%" right="150px" p={2} bg="gray.100" color="black">
+                Price: ${offer.pricePerNight}
+              </Box>
 
+              <Button colorScheme="teal" position="absolute" bottom="50%" right="20px" transform="translateY(50%)" onClick={() => handleViewClick(offer)}>
+                View
+              </Button>
+            </Box>
           ))}
         </Grid>
+
+        <HStack spacing={4} w="100%" justify="space-between">
+          <Button onClick={handlePreviousPage} isDisabled={currentPage === 0}>
+            Previous
+          </Button>
+          <Button onClick={handleNextPage} isDisabled={lastPage}>
+            Next
+          </Button>
+        </HStack>
 
 
       </VStack>
@@ -178,6 +209,7 @@ const OffersPage = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           offer={selectedOffer}
+          flatDetails={flatDetails}
         />
     </Center>
   );

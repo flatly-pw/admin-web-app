@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flex, Spacer, Button, Center } from '@chakra-ui/react';
 
-const NavigationBar = ({ currentView, onViewChange }) => {
+const NavigationBar = ({ currentView, onViewChange, onLogout }) => {
   return (
     <Center>
       <Flex p={4} mb={4} align="center" bg="teal.500" color="white" w="50%">
@@ -38,7 +38,10 @@ const NavigationBar = ({ currentView, onViewChange }) => {
         <Spacer />
 
 
-        <Button colorScheme="red">Log Out</Button>
+        <Button
+        colorScheme="red"
+        onClick={() => onLogout()}
+        >Log Out</Button>
       </Flex>
     </Center>
   );
